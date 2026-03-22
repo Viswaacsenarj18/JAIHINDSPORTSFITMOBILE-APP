@@ -1,0 +1,256 @@
+import React, { useState, useRef } from "react";
+import {
+  View, Text, TextInput, TouchableOpacity, ScrollView,
+  Switch, StyleSheet, SafeAreaView, StatusBar, Animated,
+  Alert,
+} from "react-native";
+import {
+  User, Lock, Bell, Moon, Sun, Shield, ChevronRight,
+  Camera, Mail, Phone, MapPin, Eye, Trash2, Download,
+} from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import PageHeader from "../components/PageHeader";
+
+const SettingsScreen = () => {
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  // Privacy
+  const [locationAccess,   setLocationAccess]   = useState(true);
+  const [analyticsSharing, setAnalyticsSharing] = useState(false);
+  // Notifications
+  const [orderUpdates,   setOrderUpdates]   = useState(true);
+  const [promotions,     setPromotions]     = useState(false);
+  const [cartReminders,  setCartReminders]  = useState(true);
+  // Appearance
+  const [darkMode, setDarkMode] = useState(false);
+  // Profile
+  const [name,    setName]    = useState("Rahul S.");
+  const [email,   setEmail]   = useState("rahul@example.com");
+  const [phone,   setPhone]   = useState("9876543210");
+  const [address, setAddress] = useState("Mumbai, Maharashtra");
+  // Password
+  const [currentPw,  setCurrentPw]  = useState("");
+  const [newPw,      setNewPw]      = useState("");
+  const [confirmPw,  setConfirmPw]  = useState("");
+
+  const toggle = (key: string) =>
+    setActiveSection((prev) => (prev === key ? null : key));
+
+  const SectionCard = ({ id, iconBg, Icon, iconColor, title, subtitle, children }: any) => (
+    <View style={styles.card}>
+      <TouchableOpacity style={styles.cardHeader} onPress={() => toggle(id)}>
+        <View style={styles.cardLeft}>
+          <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
+            <Icon size={18} color={iconColor} />
+          </View>
+          <View>
+            <Text style={styles.cardTitle}>{title}</Text>
+            <Text style={styles.cardSub}>{subtitle}</Text>
+          </View>
+        </View>
+        <ChevronRight size={18} color="#9CA3AF"
+          style={{ transform: [{ rotate: activeSection === id ? "90deg" : "0deg" }] }} />
+      </TouchableOpacity>
+      {activeSection === id && <View style={styles.cardBody}>{children}</View>}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" />
+      <PageHeader title="Settings" />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+
+        {/* ── Edit Profile ── */}
+        <SectionCard id="profile" iconBg="rgba(225,29,72,0.10)" Icon={User} iconColor="#E11D48"
+          title="Edit Profile" subtitle="Name, email, phone, address">
+          {/* Avatar */}
+          <View style={styles.avatarWrapper}>
+            <LinearGradient colors={["#E11D48", "#9F1239"]} style={styles.avatar}>
+              <User size={32} color="#FFFFFF" />
+            </LinearGradient>
+            <TouchableOpacity style={styles.cameraBtn}>
+              <Camera size={14} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          {[
+            { label: "Full Name", value: name, setter: setName, Icon: User, kb: "default" as const },
+            { label: "Email",     value: email, setter: setEmail, Icon: Mail, kb: "email-address" as const },
+            { label: "Phone",     value: phone, setter: setPhone, Icon: Phone, kb: "phone-pad" as const },
+          ].map(({ label, value, setter, Icon: FieldIcon, kb }) => (
+            <View key={label}>
+              <View style={styles.fieldLabelRow}>
+                <FieldIcon size={12} color="#9CA3AF" />
+                <Text style={styles.fieldLabel}>{label}</Text>
+              </View>
+              <TextInput value={value} onChangeText={setter} keyboardType={kb}
+                autoCapitalize="none" style={styles.input} />
+            </View>
+          ))}
+          <View>
+            <View style={styles.fieldLabelRow}>
+              <MapPin size={12} color="#9CA3AF" />
+              <Text style={styles.fieldLabel}>Address</Text>
+            </View>
+            <TextInput value={address} onChangeText={setAddress} multiline numberOfLines={3}
+              textAlignVertical="top" style={[styles.input, styles.textarea]} />
+          </View>
+          <TouchableOpacity activeOpacity={0.88}
+            onPress={() => Alert.alert("Success", "Profile updated successfully")}>
+            <LinearGradient colors={["#E11D48", "#9F1239"]} style={styles.saveBtn}>
+              <Text style={styles.saveBtnText}>Save Profile</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </SectionCard>
+
+        {/* ── Change Password ── */}
+        <SectionCard id="password" iconBg="#F3F4F6" Icon={Lock} iconColor="#333333"
+          title="Change Password" subtitle="Update your password">
+          {[
+            { label: "Current Password", value: currentPw, setter: setCurrentPw },
+            { label: "New Password",     value: newPw,     setter: setNewPw },
+            { label: "Confirm Password", value: confirmPw, setter: setConfirmPw },
+          ].map(({ label, value, setter }) => (
+            <View key={label}>
+              <Text style={styles.fieldLabel}>{label}</Text>
+              <TextInput value={value} onChangeText={setter} secureTextEntry
+                placeholder="••••••" placeholderTextColor="#9CA3AF" style={styles.input} />
+            </View>
+          ))}
+          <TouchableOpacity activeOpacity={0.88} onPress={() => {
+            if (!currentPw) { Alert.alert("Error", "Enter current password"); return; }
+            if (newPw.length < 6) { Alert.alert("Error", "Password must be at least 6 characters"); return; }
+            if (newPw !== confirmPw) { Alert.alert("Error", "Passwords don't match"); return; }
+            Alert.alert("Success", "Password changed successfully");
+            setCurrentPw(""); setNewPw(""); setConfirmPw("");
+          }}>
+            <LinearGradient colors={["#E11D48", "#9F1239"]} style={styles.saveBtn}>
+              <Text style={styles.saveBtnText}>Update Password</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </SectionCard>
+
+        {/* ── Notifications ── */}
+        <View style={styles.card}>
+          <View style={[styles.cardHeader, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5E5" }]}>
+            <View style={styles.cardLeft}>
+              <View style={[styles.iconBox, { backgroundColor: "#F3F4F6" }]}>
+                <Bell size={18} color="#333333" />
+              </View>
+              <View>
+                <Text style={styles.cardTitle}>Notifications</Text>
+                <Text style={styles.cardSub}>Manage notification preferences</Text>
+              </View>
+            </View>
+          </View>
+          {[
+            { label: "Order Updates",      value: orderUpdates,  setter: setOrderUpdates },
+            { label: "Promotions & Offers", value: promotions,    setter: setPromotions },
+            { label: "Cart Reminders",      value: cartReminders, setter: setCartReminders },
+          ].map(({ label, value, setter }, idx, arr) => (
+            <View key={label} style={[styles.toggleRow, idx < arr.length - 1 && styles.borderBottom]}>
+              <Text style={styles.toggleLabel}>{label}</Text>
+              <Switch value={value} onValueChange={setter}
+                trackColor={{ false: "#E5E5E5", true: "#E11D48" }}
+                thumbColor="#FFFFFF" ios_backgroundColor="#E5E5E5" />
+            </View>
+          ))}
+        </View>
+
+        {/* ── Appearance ── */}
+        <View style={styles.card}>
+          <View style={styles.toggleRow}>
+            <View style={styles.cardLeft}>
+              <View style={[styles.iconBox, { backgroundColor: "#F3F4F6" }]}>
+                {darkMode ? <Moon size={18} color="#333333" /> : <Sun size={18} color="#D97706" />}
+              </View>
+              <View>
+                <Text style={styles.cardTitle}>Appearance</Text>
+                <Text style={styles.cardSub}>{darkMode ? "Dark" : "Light"} mode</Text>
+              </View>
+            </View>
+            <Switch value={darkMode} onValueChange={setDarkMode}
+              trackColor={{ false: "#E5E5E5", true: "#E11D48" }}
+              thumbColor="#FFFFFF" ios_backgroundColor="#E5E5E5" />
+          </View>
+        </View>
+
+        {/* ── Privacy & Security ── */}
+        <SectionCard id="privacy" iconBg="rgba(239,68,68,0.10)" Icon={Shield} iconColor="#E11D48"
+          title="Privacy & Security" subtitle="Manage data and permissions">
+          {[
+            { label: "Location Access", value: locationAccess,   setter: setLocationAccess },
+            { label: "Share Analytics", value: analyticsSharing, setter: setAnalyticsSharing },
+          ].map(({ label, value, setter }, idx) => (
+            <View key={label} style={[styles.toggleRow, idx === 0 && styles.borderBottom]}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Eye size={16} color="#9CA3AF" />
+                <Text style={styles.toggleLabel}>{label}</Text>
+              </View>
+              <Switch value={value} onValueChange={setter}
+                trackColor={{ false: "#E5E5E5", true: "#E11D48" }}
+                thumbColor="#FFFFFF" ios_backgroundColor="#E5E5E5" />
+            </View>
+          ))}
+          <TouchableOpacity style={[styles.toggleRow, styles.borderTop]}
+            onPress={() => Alert.alert("Requested", "Your data download has been requested. You'll receive an email shortly.")}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <Download size={16} color="#9CA3AF" />
+              <Text style={styles.toggleLabel}>Download My Data</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.toggleRow}
+            onPress={() => Alert.alert("Contact Support", "Please contact support to delete your account.")}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <Trash2 size={16} color="#E11D48" />
+              <Text style={[styles.toggleLabel, { color: "#E11D48" }]}>Delete Account</Text>
+            </View>
+          </TouchableOpacity>
+        </SectionCard>
+
+        {/* App info */}
+        <View style={{ alignItems: "center", paddingVertical: 12, gap: 4 }}>
+          <Text style={styles.version}>Jaihind Sports v1.0.0</Text>
+          <Text style={[styles.version, { fontSize: 9 }]}>Made with ❤️ for sports lovers</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default SettingsScreen;
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#F8F8F8" },
+  content: { padding: 16, gap: 14, paddingBottom: 32 },
+  card: {
+    backgroundColor: "#FFFFFF", borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07, shadowRadius: 6, elevation: 3,
+  },
+  cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
+  cardLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  iconBox: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  cardTitle: { fontSize: 14, fontWeight: "700", color: "#111111" },
+  cardSub: { fontSize: 11, color: "#9CA3AF", marginTop: 1 },
+  cardBody: { padding: 16, paddingTop: 4, gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E5E5" },
+  avatarWrapper: { alignItems: "center", paddingVertical: 8 },
+  avatar: { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center" },
+  cameraBtn: {
+    position: "absolute", bottom: 4, right: "35%",
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: "#E11D48", alignItems: "center", justifyContent: "center",
+    borderWidth: 2, borderColor: "#FFFFFF",
+  },
+  fieldLabelRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 },
+  fieldLabel: { fontSize: 11, fontWeight: "600", color: "#6B7280", textTransform: "uppercase", letterSpacing: 0.4 },
+  input: { height: 48, backgroundColor: "#F3F4F6", borderRadius: 12, borderWidth: 1, borderColor: "#E5E5E5", paddingHorizontal: 14, fontSize: 14, color: "#111111" },
+  textarea: { height: 80, paddingTop: 12, paddingBottom: 12 },
+  saveBtn: { height: 48, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  saveBtnText: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
+  toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14 },
+  toggleLabel: { fontSize: 14, color: "#111111" },
+  borderBottom: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5E5" },
+  borderTop: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E5E5" },
+  version: { fontSize: 10, color: "#9CA3AF" },
+});
