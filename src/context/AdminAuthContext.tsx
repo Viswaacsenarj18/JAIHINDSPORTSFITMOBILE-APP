@@ -1,127 +1,62 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-} from "react";
-
-/* ================= TYPES ================= */
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface AdminUser {
-  id: string;
-  name: string;
+  name:  string;
   email: string;
 }
 
 interface AdminAuthContextType {
-  admin: AdminUser | null;
+  admin:                AdminUser | null;
   isAdminAuthenticated: boolean;
-  adminLogin: (email: string, password: string) => Promise<void>;
-  adminLogout: () => void;
-  updateAdminProfile: (name: string, email: string) => void;
-  changeAdminPassword: (
-    oldPassword: string,
-    newPassword: string
-  ) => Promise<void>;
+  adminLogin:           (email: string, password: string) => Promise<void>;
+  adminLogout:          () => void;
+  updateAdminProfile:   (name: string, email: string) => void;
+  changeAdminPassword:  (oldPass: string, newPass: string) => Promise<void>;
 }
 
-/* ================= CONTEXT ================= */
+const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-const AdminAuthContext = createContext<AdminAuthContextType | undefined>(
-  undefined
-);
-
-/* ================= PROVIDER ================= */
-
-export const AdminAuthProvider = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
+export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
 
-  /* ---------- LOGIN ---------- */
+  const isAdminAuthenticated = admin !== null;
+
   const adminLogin = async (email: string, password: string) => {
-    try {
-      // 🔥 Mock API call (replace later)
-      if (!email || !password) {
-        throw new Error("Email and password required");
-      }
-
-      const mockAdmin: AdminUser = {
-        id: "admin-1",
-        name: "Admin",
-        email,
-      };
-
-      setAdmin(mockAdmin);
-    } catch (error) {
-      console.error("Admin login failed:", error);
-      throw error;
-    }
+    // Credentials are checked in LoginScreen directly.
+    // This context is kept for future backend integration.
+    setAdmin({ name: "Admin", email });
   };
 
-  /* ---------- LOGOUT ---------- */
   const adminLogout = () => {
     setAdmin(null);
   };
 
-  /* ---------- UPDATE PROFILE ---------- */
   const updateAdminProfile = (name: string, email: string) => {
-    if (!admin) return;
-
-    setAdmin({
-      ...admin,
-      name,
-      email,
-    });
+    setAdmin((prev) => prev ? { ...prev, name, email } : null);
   };
 
-  /* ---------- CHANGE PASSWORD ---------- */
-  const changeAdminPassword = async (
-    oldPassword: string,
-    newPassword: string
-  ) => {
-    try {
-      if (!oldPassword || !newPassword) {
-        throw new Error("Passwords required");
-      }
-
-      // 🔥 Mock logic (replace with API)
-      console.log("Password changed successfully");
-    } catch (error) {
-      console.error("Password change failed:", error);
-      throw error;
-    }
-  };
-
-  /* ---------- VALUE ---------- */
-  const value: AdminAuthContextType = {
-    admin,
-    isAdminAuthenticated: !!admin,
-    adminLogin,
-    adminLogout,
-    updateAdminProfile,
-    changeAdminPassword,
+  const changeAdminPassword = async (_oldPass: string, _newPass: string) => {
+    // Wire to your backend when ready
   };
 
   return (
-    <AdminAuthContext.Provider value={value}>
+    <AdminAuthContext.Provider
+      value={{
+        admin,
+        isAdminAuthenticated,
+        adminLogin,
+        adminLogout,
+        updateAdminProfile,
+        changeAdminPassword,
+      }}
+    >
       {children}
     </AdminAuthContext.Provider>
   );
 };
 
-/* ================= HOOK ================= */
-
-export const useAdminAuth = () => {
-  const context = useContext(AdminAuthContext);
-
-  if (!context) {
-    throw new Error(
-      "useAdminAuth must be used within AdminAuthProvider"
-    );
-  }
-
-  return context;
+export const useAdminAuth = (): AdminAuthContextType => {
+  const ctx = useContext(AdminAuthContext);
+  if (!ctx) throw new Error("useAdminAuth must be used inside <AdminAuthProvider>");
+  return ctx;
 };

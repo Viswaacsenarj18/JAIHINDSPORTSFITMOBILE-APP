@@ -1,35 +1,54 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Product } from "@/data/mockData";
+import { CartProduct } from "./CartContext";
 
+// ─── Context ──────────────────────────────────────────────────────────────────
 interface WishlistContextType {
-  items: Product[];
-  addToWishlist: (product: Product) => void;
-  removeFromWishlist: (productId: string) => void;
-  isInWishlist: (productId: string) => boolean;
+  items:              CartProduct[];
+  addToWishlist:      (product: CartProduct) => void;
+  removeFromWishlist: (productId: string)    => void;
+  isInWishlist:       (productId: string)    => boolean;
+  toggleWishlist:     (product: CartProduct) => void;
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
+// ─── Provider ─────────────────────────────────────────────────────────────────
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<Product[]>([]);
+  const [items, setItems] = useState<CartProduct[]>([]);
 
-  const addToWishlist = (product: Product) => {
-    setItems((prev) => prev.some((i) => i.id === product.id) ? prev : [...prev, product]);
+  const isInWishlist = (productId: string) =>
+    items.some((p) => p.id === productId);
+
+  const addToWishlist = (product: CartProduct) => {
+    setItems((prev) =>
+      prev.find((p) => p.id === product.id) ? prev : [...prev, product]
+    );
   };
 
-  const removeFromWishlist = (productId: string) => setItems((prev) => prev.filter((i) => i.id !== productId));
+  const removeFromWishlist = (productId: string) => {
+    setItems((prev) => prev.filter((p) => p.id !== productId));
+  };
 
-  const isInWishlist = (productId: string) => items.some((i) => i.id === productId);
+  const toggleWishlist = (product: CartProduct) => {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   return (
-    <WishlistContext.Provider value={{ items, addToWishlist, removeFromWishlist, isInWishlist }}>
+    <WishlistContext.Provider
+      value={{ items, addToWishlist, removeFromWishlist, isInWishlist, toggleWishlist }}
+    >
       {children}
     </WishlistContext.Provider>
   );
 };
 
-export const useWishlist = () => {
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+export const useWishlist = (): WishlistContextType => {
   const ctx = useContext(WishlistContext);
-  if (!ctx) throw new Error("useWishlist must be used within WishlistProvider");
+  if (!ctx) throw new Error("useWishlist must be used inside <WishlistProvider>");
   return ctx;
 };

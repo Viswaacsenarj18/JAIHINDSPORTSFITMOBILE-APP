@@ -1,52 +1,51 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
 interface StatusBadgeProps {
-  status: string;
+  status:   string;
   variant?: "order" | "payment";
 }
 
+type ColorMap = { bg: string; text: string };
+
+const orderColors: Record<string, ColorMap> = {
+  delivered:  { bg: "rgba(22,163,74,0.12)",  text: "#16A34A" },
+  processing: { bg: "rgba(225,29,72,0.10)",  text: "#E11D48" },
+  pending:    { bg: "rgba(245,158,11,0.12)", text: "#D97706" },
+};
+
+const paymentColors: Record<string, ColorMap> = {
+  paid:    { bg: "rgba(22,163,74,0.12)",  text: "#16A34A" },
+  pending: { bg: "rgba(245,158,11,0.12)", text: "#D97706" },
+  failed:  { bg: "rgba(225,29,72,0.10)",  text: "#E11D48" },
+};
+
+const fallback: ColorMap = { bg: "#F3F4F6", text: "#6B7280" };
+
 const StatusBadge = ({ status, variant = "order" }: StatusBadgeProps) => {
-  
-  const getStyles = () => {
-    if (variant === "payment") {
-      switch (status) {
-        case "paid":
-          return { bg: "bg-green-100", text: "text-green-600" };
-        case "pending":
-          return { bg: "bg-yellow-100", text: "text-yellow-600" };
-        case "failed":
-          return { bg: "bg-red-100", text: "text-red-600" };
-        default:
-          return { bg: "bg-gray-100", text: "text-gray-500" };
-      }
-    }
-
-    switch (status) {
-      case "delivered":
-        return { bg: "bg-green-100", text: "text-green-600" };
-      case "processing":
-        return { bg: "bg-blue-100", text: "text-blue-600" };
-      case "pending":
-        return { bg: "bg-yellow-100", text: "text-yellow-600" };
-      default:
-        return { bg: "bg-gray-100", text: "text-gray-500" };
-    }
-  };
-
-  const styles = getStyles();
+  const map = variant === "payment" ? paymentColors : orderColors;
+  const { bg, text } = map[status.toLowerCase()] ?? fallback;
 
   return (
-    <View
-      className={`px-2.5 py-1 rounded-full ${styles.bg} self-start`}
-    >
-      <Text
-        className={`text-xs font-medium capitalize ${styles.text}`}
-      >
-        {status}
+    <View style={[styles.badge, { backgroundColor: bg }]}>
+      <Text style={[styles.text, { color: text }]}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
       </Text>
     </View>
   );
 };
 
 export default StatusBadge;
+
+const styles = StyleSheet.create({
+  badge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  text: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+});
