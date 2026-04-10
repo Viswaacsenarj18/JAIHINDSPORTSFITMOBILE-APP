@@ -1,24 +1,27 @@
 import "react-native-gesture-handler";
 import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
+
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 import {
   View,
-  SafeAreaView,
   Platform,
   Alert,
 } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import {
+
+// ✅ FIXED SafeAreaView
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+
+import {x
   Home,
   Grid2x2,
   ShoppingCart,
   Heart,
   User,
 } from "lucide-react-native";
-
 /* ─── CONTEXTS ────────────────────────────────────────────────────────────── */
 import { AdminAuthProvider } from "./src/context/AdminAuthContext";
 import { CartProvider }      from "./src/context/CartContext";
@@ -206,7 +209,7 @@ function UserTabs() {
       </Tab.Navigator>
 
       {/* WhatsApp FAB — floats above tab bar on all tab screens */}
-      <WhatsAppButton />
+      <WhatsAppButton />s
     </>
   );
 }
