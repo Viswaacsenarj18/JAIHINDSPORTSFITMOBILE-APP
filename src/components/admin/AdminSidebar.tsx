@@ -4,19 +4,37 @@ import {
   StyleSheet, Modal, Animated, Dimensions,
 } from "react-native";
 import {
-  LayoutDashboard, Package, Grid3x3, ShoppingCart,
-  Users, Settings, LogOut, X, Trophy,
+  LayoutDashboard,
+  Package,
+  Grid3x3,
+  ShoppingCart,
+  Users,
+  Settings,
+  LogOut,
+  X,
+  Trophy,
+  Image as ImageIcon,   // ✅ ADD THIS
 } from "lucide-react-native";
 
-export type AdminTab = "Dashboard" | "Products" | "Categories" | "Orders" | "Users" | "Settings";
+export type AdminTab =
+  | "Dashboard"
+  | "Products"
+  | "Categories"
+  | "Orders"
+  | "Users"
+  | "Banners"   // ✅ ADD THIS
+  | "Settings";
 
-const navItems: { label: AdminTab; Icon: React.ElementType }[] = [
+const navItems = [
   { label: "Dashboard",  Icon: LayoutDashboard },
-  { label: "Products",   Icon: Package         },
-  { label: "Categories", Icon: Grid3x3         },
-  { label: "Orders",     Icon: ShoppingCart    },
-  { label: "Users",      Icon: Users           },
-  { label: "Settings",   Icon: Settings        },
+  { label: "Products",   Icon: Package },
+  { label: "Categories", Icon: Grid3x3 },
+  { label: "Orders",     Icon: ShoppingCart },
+  { label: "Users",      Icon: Users },
+
+  { label: "Banners",    Icon: ImageIcon }, // ✅ NEW
+
+  { label: "Settings",   Icon: Settings },
 ];
 
 interface AdminSidebarProps {

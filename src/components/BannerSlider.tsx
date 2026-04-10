@@ -6,24 +6,25 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
-  Animated,
+  ImageBackground,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-// react-native-linear-gradient users swap above for:
-// import LinearGradient from "react-native-linear-gradient";
 
-import { banners } from "../data/mockData";
+import { useBanners } from "../context/BannerContext";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH - 32; // 16px margin each side
+const CARD_WIDTH = SCREEN_WIDTH - 32;
 
 const BannerSlider = () => {
+  const { banners } = useBanners();
+
   const [current, setCurrent] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-advance every 4 seconds
+  // ✅ AUTO SLIDE
   useEffect(() => {
+    if (banners.length === 0) return;
+
     timerRef.current = setInterval(() => {
       setCurrent((prev) => {
         const next = (prev + 1) % banners.length;
@@ -31,20 +32,33 @@ const BannerSlider = () => {
         return next;
       });
     }, 4000);
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [banners.length]);
+
+  // ✅ MANUAL SCROLL UPDATE
+  const handleMomentumEnd = (e: any) => {
+    const index = Math.round(
+      e.nativeEvent.contentOffset.x / CARD_WIDTH
+    );
+    setCurrent(index);
+  };
 
   const handleDotPress = (index: number) => {
     setCurrent(index);
     flatListRef.current?.scrollToIndex({ index, animated: true });
   };
 
-  const handleMomentumEnd = (e: any) => {
-    const index = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
-    setCurrent(index);
-  };
+  // ✅ EMPTY STATE
+  if (banners.length === 0) {
+    return (
+      <View style={styles.emptyBox}>
+        <Text style={styles.emptyText}>No banners available</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -64,28 +78,36 @@ const BannerSlider = () => {
           index,
         })}
         renderItem={({ item }) => (
-          <LinearGradient
-            colors={item.colors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.slide}
-          >
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>{item.subtitle}</Text>
-            <TouchableOpacity style={styles.ctaBtn} activeOpacity={0.85}>
-              <Text style={styles.ctaText}>{item.cta}</Text>
-            </TouchableOpacity>
-          </LinearGradient>
+          <View style={styles.slide}>
+            {/* ✅ IMAGE BACKGROUND */}
+            <ImageBackground
+              source={{ uri: item.imageUrl }}
+              style={styles.image}
+              imageStyle={{ borderRadius: 16 }}
+            >
+              {/* Overlay */}
+              <View style={styles.overlay}>
+                <Text style={styles.title}>{item.title}</Text>
+
+                <TouchableOpacity style={styles.ctaBtn}>
+                  <Text style={styles.ctaText}>Shop Now</Text>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
+          </View>
         )}
       />
 
-      {/* Dot indicators */}
+      {/* DOTS */}
       <View style={styles.dotsRow}>
         {banners.map((_, i) => (
           <TouchableOpacity
             key={i}
             onPress={() => handleDotPress(i)}
-            style={[styles.dot, i === current ? styles.dotActive : styles.dotInactive]}
+            style={[
+              styles.dot,
+              i === current ? styles.dotActive : styles.dotInactive,
+            ]}
           />
         ))}
       </View>
@@ -98,41 +120,45 @@ export default BannerSlider;
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
-    borderRadius: 16,
-    overflow: "hidden",
   },
+
   slide: {
     width: CARD_WIDTH,
-    minHeight: 140,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  image: {
+    width: "100%",
+    height: 160,
+    justifyContent: "flex-end",
+  },
+
+  overlay: {
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 16,
     borderRadius: 16,
   },
+
   title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    letterSpacing: 1,
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
   },
-  subtitle: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.80)",
-    marginTop: 4,
-  },
+
   ctaBtn: {
-    marginTop: 14,
+    marginTop: 8,
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
     alignSelf: "flex-start",
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 999,
   },
+
   ctaText: {
     fontSize: 12,
-    fontWeight: "700",
-    color: "#111111",
+    fontWeight: "600",
   },
+
   dotsRow: {
     position: "absolute",
     bottom: 10,
@@ -140,18 +166,31 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     justifyContent: "center",
-    gap: 6,
   },
+
   dot: {
     height: 6,
     borderRadius: 999,
+    marginHorizontal: 3,
   },
+
   dotActive: {
-    width: 22,
-    backgroundColor: "#FFFFFF",
+    width: 20,
+    backgroundColor: "#fff",
   },
+
   dotInactive: {
     width: 6,
-    backgroundColor: "rgba(255,255,255,0.45)",
+    backgroundColor: "rgba(255,255,255,0.5)",
+  },
+
+  emptyBox: {
+    height: 150,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  emptyText: {
+    color: "#999",
   },
 });

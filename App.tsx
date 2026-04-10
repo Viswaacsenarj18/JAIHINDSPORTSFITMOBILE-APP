@@ -15,7 +15,7 @@ import {
 // ✅ FIXED SafeAreaView
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import {x
+import {
   Home,
   Grid2x2,
   ShoppingCart,
@@ -26,6 +26,7 @@ import {x
 import { AdminAuthProvider } from "./src/context/AdminAuthContext";
 import { CartProvider }      from "./src/context/CartContext";
 import { WishlistProvider }  from "./src/context/WishlistContext";
+import { BannerProvider } from "./src/context/BannerContext";
 
 /* ─── SHARED COMPONENTS ───────────────────────────────────────────────────── */
 import SplashScreen   from "./src/components/SplashScreen";
@@ -44,6 +45,7 @@ import AdminCategoriesPage from "./src/screens/admin/AdminCategoriesPage";
 import AdminOrdersPage     from "./src/screens/admin/AdminOrdersPage";
 import AdminUsersPage      from "./src/screens/admin/AdminUsersPage";
 import AdminSettingsPage   from "./src/screens/admin/AdminSettingsPage";
+import AdminBannerPage     from "./src/screens/admin/AdminBannerPage";
 
 /* ─── AUTH SCREENS ────────────────────────────────────────────────────────── */
 import LoginScreen          from "./src/screens/LoginScreen";
@@ -128,7 +130,8 @@ const AdminPanel = ({ navigation }: { navigation: any }) => {
       case "Categories": return <AdminCategoriesPage />;
       case "Orders":     return <AdminOrdersPage />;
       case "Users":      return <AdminUsersPage />;
-      case "Settings":   return <AdminSettingsPage />;
+case "Settings": return <AdminSettingsPage />;
+      case "Banners": return <AdminBannerPage />;
       default:           return <AdminDashboardPage />;
     }
   };
@@ -209,7 +212,7 @@ function UserTabs() {
       </Tab.Navigator>
 
       {/* WhatsApp FAB — floats above tab bar on all tab screens */}
-      <WhatsAppButton />s
+      <WhatsAppButton />
     </>
   );
 }
@@ -222,7 +225,8 @@ export default function App() {
   return (
     <AdminAuthProvider>
       <CartProvider>
-        <WishlistProvider>
+<BannerProvider>
+  <WishlistProvider>
           <SafeAreaProvider>
             <NavigationContainer>
               <Stack.Navigator
@@ -267,8 +271,9 @@ export default function App() {
               <StatusBar style="dark" />
             </NavigationContainer>
           </SafeAreaProvider>
-        </WishlistProvider>
-      </CartProvider>
+      </WishlistProvider>
+  </BannerProvider>
+        </CartProvider>
     </AdminAuthProvider>
   );
 }
