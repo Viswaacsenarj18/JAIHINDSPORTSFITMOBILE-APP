@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Heart } from "lucide-react-native";
 import { Product } from "../data/mockData";
+import { useWishlist } from "../context/WishlistContext";
 
 type RootStackParamList = {
   ProductDetail: { productId: string };
@@ -27,7 +28,7 @@ interface Props {
 
 const ProductCard = ({ product }: Props) => {
   const navigation = useNavigation<NavProp>();
-  const [wishlisted, setWishlisted] = useState(false);
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -42,7 +43,7 @@ const ProductCard = ({ product }: Props) => {
       {/* Image */}
       <View style={styles.imageWrapper}>
         <Image
-          source={{ uri: product.image }}
+          source={{ uri: product.images?.[0] || "" }}
           style={styles.image}
           resizeMode="cover"
         />
@@ -64,13 +65,13 @@ const ProductCard = ({ product }: Props) => {
         {/* Wishlist button — top right */}
         <TouchableOpacity
           style={styles.wishlistBtn}
-          onPress={() => setWishlisted((v) => !v)}
+          onPress={() => toggleWishlist(product)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
           <Heart
             size={16}
-            color={wishlisted ? "#E11D48" : "#888888"}
-            fill={wishlisted ? "#E11D48" : "transparent"}
+            color={isInWishlist(product.id) ? "#E11D48" : "#888888"}
+            fill={isInWishlist(product.id) ? "#E11D48" : "transparent"}
           />
         </TouchableOpacity>
       </View>

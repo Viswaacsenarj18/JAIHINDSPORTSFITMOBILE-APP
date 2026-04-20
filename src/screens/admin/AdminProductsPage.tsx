@@ -9,7 +9,7 @@ import { products as mockProducts, Product, categories } from "../../data/mockDa
 import ModalForm   from "../../components/admin/ModalForm";
 import StatusBadge from "../../components/admin/StatusBadge";
 
-const emptyForm = { name: "", category: "", price: "", stock: "", description: "", image: "" };
+const emptyForm = { name: "", category: "", price: "", stock: "", description: "", images: [] as string[] };
 
 const AdminProductsPage = () => {
   const [productList,   setProductList]   = useState<Product[]>(mockProducts);
@@ -27,7 +27,7 @@ const AdminProductsPage = () => {
   const openAdd = () => { setEditingId(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = (p: Product) => {
     setEditingId(p.id);
-    setForm({ name: p.name, category: p.category, price: String(p.price), stock: p.inStock ? "10" : "0", description: p.description, image: p.image });
+    setForm({ name: p.name, category: p.category, price: String(p.price), stock: p.inStock ? "10" : "0", description: p.description, images: p.images || [] });
     setModalOpen(true);
   };
 
@@ -42,14 +42,18 @@ const AdminProductsPage = () => {
     if (!form.name.trim() || !form.price) { Alert.alert("Error", "Name and price are required"); return; }
     if (editingId) {
       setProductList((prev) => prev.map((p) => p.id === editingId
-        ? { ...p, name: form.name, category: form.category, price: Number(form.price), description: form.description, image: form.image, inStock: Number(form.stock) > 0 }
+        ? { ...p, name: form.name, category: form.category, price: Number(form.price), description: form.description, images: form.images, inStock: Number(form.stock) > 0 }
         : p));
     } else {
       setProductList((prev) => [{
-        id: `new-${Date.now()}`, name: form.name, category: form.category,
+        id: `new-${Date.now()}`,
+        name: form.name,
+        category: form.category,
         price: Number(form.price),
-        image: form.image || "https://images.unsplash.com/photo-1461896836934-bd45ba8c9e9c?w=400&h=400&fit=crop",
-        rating: 0, reviews: 0, description: form.description,
+        images: form.images.length > 0 ? form.images : ["https://images.unsplash.com/photo-1461896836934-bd45ba8c9e9c?w=400&h=400&fit=crop"],
+        rating: 0,
+        reviews: 0,
+        description: form.description,
         inStock: Number(form.stock) > 0,
       }, ...prev]);
     }
@@ -79,7 +83,7 @@ const AdminProductsPage = () => {
         ItemSeparatorComponent={() => <View style={styles.sep} />}
         renderItem={({ item }) => (
           <View style={styles.row}>
-            <Image source={{ uri: item.image }} style={styles.thumb} resizeMode="cover" />
+            <Image source={{ uri: item.images?.[0] }} style={styles.thumb} resizeMode="cover" />
             <View style={styles.rowInfo}>
               <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
               <Text style={styles.rowCat}>{item.category}</Text>
@@ -128,12 +132,28 @@ const AdminProductsPage = () => {
           </View>
         </View>
 
-        <Text style={styles.label}>Image URL</Text>
-        <TextInput value={form.image} onChangeText={(v) => setForm({ ...form, image: v })} style={styles.input} placeholder="https://..." placeholderTextColor="#9CA3AF" autoCapitalize="none" keyboardType="url" />
+        <Text style={styles.label}>Product Images (URLs, comma separated)</Text>
+        <TextInput
+          value={form.images.join(", ")}
+          onChangeText={(v) => setForm({ ...form, images: v.split(",").map(s => s.trim()).filter(Boolean) })}
+          style={styles.input}
+          placeholder="https://..., https://..."
+          placeholderTextColor="#9CA3AF"
+          autoCapitalize="none"
+          keyboardType="url"
+        />
 
         <Text style={styles.label}>Description</Text>
         <TextInput value={form.description} onChangeText={(v) => setForm({ ...form, description: v })} style={[styles.input, styles.textarea]} multiline numberOfLines={3} textAlignVertical="top" placeholder="Product description..." placeholderTextColor="#9CA3AF" />
 
+        {/* Preview images */}
+        {form.images.length > 0 && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 8 }}>
+            {form.images.map((img, idx) => (
+              <Image key={idx} source={{ uri: img }} style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: '#eee', marginRight: 8, marginBottom: 8 }} />
+            ))}
+          </View>
+        )}
         <TouchableOpacity onPress={handleSubmit} activeOpacity={0.88} style={{ marginTop: 12 }}>
           <LinearGradient colors={["#E11D48", "#F97316"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.submitBtn}>
             <Text style={styles.submitText}>{editingId ? "Update Product" : "Add Product"}</Text>

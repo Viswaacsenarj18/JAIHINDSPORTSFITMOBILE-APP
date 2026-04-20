@@ -249,9 +249,18 @@ export const CartScreen = () => {
 };
 
 // ─── WishlistScreen ───────────────────────────────────────────────────────────
+import { useWishlist } from "../context/WishlistContext";
+import { Dimensions } from "react-native";
+
 export const WishlistScreen = () => {
   const navigation = useNavigation<NavProp>();
-  const items = products.filter((p) => p.badge); // placeholder
+  const { items } = useWishlist();
+  const screenWidth = Dimensions.get("window").width;
+  const isSmallScreen = screenWidth < 500;
+  const gridStyle = [
+    sharedStyles.grid,
+    isSmallScreen ? { justifyContent: "center" } : { justifyContent: "flex-start" },
+  ];
 
   if (items.length === 0) {
     return (
@@ -267,8 +276,10 @@ export const WishlistScreen = () => {
     <SafeAreaView style={sharedStyles.safe}>
       <PageHeader title={`Wishlist (${items.length})`} showBack={false} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-        <View style={sharedStyles.grid}>
-          {items.map((p) => <ProductCard key={p.id} product={p} />)}
+        <View style={gridStyle}>
+          {items.map((p) => (
+            <ProductCard key={p.id} product={{ ...p, images: p.images || (p.image ? [p.image] : []) }} />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

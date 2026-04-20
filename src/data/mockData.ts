@@ -7,7 +7,7 @@ export interface Product {
   name: string;
   price: number;
   originalPrice?: number;
-  image: string;
+  images: string[];
   category: string;
   rating: number;
   reviews: number;
@@ -121,8 +121,10 @@ export const products: Product[] = [
     name: "Pro Cricket Bat - English Willow",
     price: 4999,
     originalPrice: 6999,
-    image:
+    images: [
       "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=400&fit=crop",
+      "https://images.unsplash.com/photo-1461896836934-bd45ba8c9e9c?w=400&h=400&fit=crop"
+    ],
     category: "cricket",
     rating: 4.5,
     reviews: 128,
@@ -136,8 +138,9 @@ export const products: Product[] = [
     name: "Match Football - FIFA Approved",
     price: 1299,
     originalPrice: 1799,
-    image:
-      "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&h=400&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&h=400&fit=crop"
+    ],
     category: "football",
     rating: 4.3,
     reviews: 95,
@@ -151,8 +154,9 @@ export const products: Product[] = [
     name: "Carbon Fiber Badminton Racket",
     price: 2499,
     originalPrice: 3499,
-    image:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=400&fit=crop",
+    images: [
+      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=400&fit=crop"
+    ],
     category: "badminton",
     rating: 4.7,
     reviews: 210,
