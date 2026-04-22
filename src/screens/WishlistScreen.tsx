@@ -15,13 +15,13 @@ import { Heart, ShoppingCart, Trash2 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import PageHeader from "../components/PageHeader";
 import { useWishlist } from "../context/WishlistContext";
-import { useCart }     from "../context/CartContext";
-import { Product }     from "../data/mockData";
+import { useCart } from "../context/CartContext";
+import { Product } from "../data/mockData";
 
 const WishlistScreen = () => {
-  const navigation              = useNavigation<any>();
+  const navigation = useNavigation<any>();
   const { items, removeFromWishlist } = useWishlist();
-  const { addToCart, isInCart }       = useCart();
+  const { addToCart, isInCart } = useCart();
 
   const handleAddToCart = (product: Product) => {
     if (!product.inStock) {
@@ -39,18 +39,20 @@ const WishlistScreen = () => {
     );
   };
 
-  // ── Empty state ──────────────────────────────────────────────────────────
+  // Empty state
   if (items.length === 0) {
     return (
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" />
         <PageHeader title="Wishlist" showBack={false} />
-        <View style={styles.empty}>
-          <View style={styles.emptyIcon}>
-            <Heart size={36} color="#9CA3AF" />
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Heart size={48} color="#E11D48" />
           </View>
           <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
-          <Text style={styles.emptySub}>Save your favourite products here</Text>
+          <Text style={styles.emptySubtitle}>
+            Save your favourite products here
+          </Text>
           <TouchableOpacity
             onPress={() => navigation.navigate("Home")}
             activeOpacity={0.88}
@@ -59,9 +61,9 @@ const WishlistScreen = () => {
               colors={["#E11D48", "#F97316"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.emptyBtn}
+              style={styles.exploreButton}
             >
-              <Text style={styles.emptyBtnText}>Explore Products</Text>
+              <Text style={styles.exploreButtonText}>Explore Products</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -73,13 +75,13 @@ const WishlistScreen = () => {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F8F8" />
       <PageHeader title={`Wishlist (${items.length})`} showBack={false} />
-
+      
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item }) => {
           const alreadyInCart = isInCart(item.id);
           const discount = item.originalPrice
@@ -87,15 +89,16 @@ const WishlistScreen = () => {
             : null;
 
           return (
-            <View style={styles.card}>
-              {/* Product image */}
+            <View style={styles.productCard}>
+              {/* Product Image Section */}
               <TouchableOpacity
                 onPress={() => navigation.navigate("ProductDetail", { productId: item.id })}
                 activeOpacity={0.85}
+                style={styles.imageSection}
               >
                 <Image
                   source={{ uri: item.image }}
-                  style={styles.image}
+                  style={styles.productImage}
                   resizeMode="cover"
                 />
                 {discount && (
@@ -105,32 +108,30 @@ const WishlistScreen = () => {
                 )}
               </TouchableOpacity>
 
-              {/* Info */}
-              <View style={styles.info}>
-                {/* Name + remove */}
-                <View style={styles.nameRow}>
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    onPress={() => navigation.navigate("ProductDetail", { productId: item.id })}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
-                  </TouchableOpacity>
+              {/* Product Details Section */}
+              <View style={styles.detailsSection}>
+                {/* Header with name and delete button */}
+                <View style={styles.productHeader}>
+                  <Text style={styles.productName} numberOfLines={2}>
+                    {item.name}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => removeFromWishlist(item.id)}
-                    style={styles.removeBtn}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    style={styles.deleteButton}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    <Trash2 size={16} color="#E11D48" />
+                    <Trash2 size={20} color="#E11D48" />
                   </TouchableOpacity>
                 </View>
 
                 {/* Category */}
                 <Text style={styles.category}>{item.category}</Text>
 
-                {/* Price row */}
-                <View style={styles.priceRow}>
-                  <Text style={styles.price}>₹{item.price.toLocaleString("en-IN")}</Text>
+                {/* Price Section */}
+                <View style={styles.priceSection}>
+                  <Text style={styles.currentPrice}>
+                    ₹{item.price.toLocaleString("en-IN")}
+                  </Text>
                   {item.originalPrice && (
                     <Text style={styles.originalPrice}>
                       ₹{item.originalPrice.toLocaleString("en-IN")}
@@ -138,41 +139,42 @@ const WishlistScreen = () => {
                   )}
                 </View>
 
-                {/* Stock status */}
-                <Text style={[styles.stockText, !item.inStock && styles.outOfStock]}>
+                {/* Stock Status */}
+                <Text style={[styles.stockStatus, !item.inStock && styles.outOfStock]}>
                   {item.inStock ? "✓ In Stock" : "✗ Out of Stock"}
                 </Text>
 
-                {/* Add to Cart button */}
-                <TouchableOpacity
-                  onPress={() => handleAddToCart(item)}
-                  disabled={!item.inStock}
-                  activeOpacity={0.85}
-                  style={{ marginTop: 10 }}
-                >
+                {/* Action Buttons */}
+                <View style={styles.actionButtons}>
                   {alreadyInCart ? (
-                    // Already in cart — show "Go to Cart"
                     <TouchableOpacity
-                      style={styles.goToCartBtn}
+                      style={styles.goToCartButton}
                       onPress={() => navigation.navigate("Cart")}
                     >
-                      <ShoppingCart size={15} color="#E11D48" />
+                      <ShoppingCart size={18} color="#E11D48" />
                       <Text style={styles.goToCartText}>Go to Cart</Text>
                     </TouchableOpacity>
                   ) : (
-                    <LinearGradient
-                      colors={item.inStock ? ["#E11D48", "#F97316"] : ["#D1D5DB", "#D1D5DB"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.addToCartBtn}
+                    <TouchableOpacity
+                      onPress={() => handleAddToCart(item)}
+                      disabled={!item.inStock}
+                      activeOpacity={0.85}
+                      style={styles.addToCartWrapper}
                     >
-                      <ShoppingCart size={15} color="#FFFFFF" />
-                      <Text style={styles.addToCartText}>
-                        {item.inStock ? "Add to Cart" : "Out of Stock"}
-                      </Text>
-                    </LinearGradient>
+                      <LinearGradient
+                        colors={item.inStock ? ["#E11D48", "#F97316"] : ["#D1D5DB", "#D1D5DB"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.addToCartButton}
+                      >
+                        <ShoppingCart size={18} color="#FFFFFF" />
+                        <Text style={styles.addToCartText}>
+                          {item.inStock ? "Add to Cart" : "Out of Stock"}
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
                   )}
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
           );
@@ -185,48 +187,212 @@ const WishlistScreen = () => {
 export default WishlistScreen;
 
 const styles = StyleSheet.create({
-  safe:           { flex: 1, backgroundColor: "#F8F8F8" },
-  list:           { padding: 16, paddingBottom: 32 },
+  safe: {
+    flex: 1,
+    backgroundColor: "#F8F8F8",
+  },
 
-  // Empty
-  empty:          { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 14 },
-  emptyIcon:      { width: 80, height: 80, borderRadius: 40, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
-  emptyTitle:     { fontSize: 18, fontWeight: "800", color: "#111111" },
-  emptySub:       { fontSize: 13, color: "#6B7280", textAlign: "center" },
-  emptyBtn:       { paddingHorizontal: 28, paddingVertical: 13, borderRadius: 999 },
-  emptyBtnText:   { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
+  listContainer: {
+    padding: 16,
+    paddingBottom: 32,
+  },
 
-  // Card
-  card:           {
+  separator: {
+    height: 16,
+  },
+
+  // Empty State Styles
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 8,
+  },
+
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 32,
+  },
+
+  exploreButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 25,
+  },
+
+  exploreButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+
+  // Product Card Styles
+  productCard: {
+    flexDirection: "row",
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    overflow: "hidden",
-    flexDirection: "row",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
+    padding: 12,
   },
-  image:          { width: 120, height: "100%" as any, minHeight: 140, backgroundColor: "#F3F4F6" },
-  discountBadge:  { position: "absolute", top: 8, left: 8, backgroundColor: "#E11D48", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  discountText:   { fontSize: 10, fontWeight: "800", color: "#FFFFFF" },
 
-  // Info
-  info:           { flex: 1, padding: 12, justifyContent: "space-between" },
-  nameRow:        { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  name:           { fontSize: 13, fontWeight: "700", color: "#111111", lineHeight: 18 },
-  removeBtn:      { width: 28, height: 28, borderRadius: 8, backgroundColor: "rgba(225,29,72,0.08)", alignItems: "center", justifyContent: "center" },
-  category:       { fontSize: 11, color: "#9CA3AF", textTransform: "capitalize", marginTop: 2 },
-  priceRow:       { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 },
-  price:          { fontSize: 16, fontWeight: "800", color: "#111111" },
-  originalPrice:  { fontSize: 12, color: "#9CA3AF", textDecorationLine: "line-through" },
-  stockText:      { fontSize: 11, fontWeight: "600", color: "#16A34A", marginTop: 2 },
-  outOfStock:     { color: "#E11D48" },
+  imageSection: {
+    position: "relative",
+    marginRight: 16,
+  },
 
-  // Buttons
-  addToCartBtn:   { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10 },
-  addToCartText:  { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
-  goToCartBtn:    { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10, borderWidth: 1.5, borderColor: "#E11D48", backgroundColor: "rgba(225,29,72,0.05)" },
-  goToCartText:   { fontSize: 13, fontWeight: "700", color: "#E11D48" },
+  productImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: "#F3F4F6",
+  },
+
+  discountBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: "#E11D48",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+
+  discountText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+
+  detailsSection: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+
+  productHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 4,
+  },
+
+  productName: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111827",
+    lineHeight: 20,
+    marginRight: 12,
+  },
+
+  deleteButton: {
+    padding: 4,
+  },
+
+  category: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    textTransform: "capitalize",
+    marginBottom: 8,
+  },
+
+  priceSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+
+  currentPrice: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#E11D48",
+  },
+
+  originalPrice: {
+    fontSize: 13,
+    color: "#9CA3AF",
+    textDecorationLine: "line-through",
+  },
+
+  stockStatus: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#10B981",
+    marginBottom: 8,
+  },
+
+  outOfStock: {
+    color: "#EF4444",
+  },
+
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  addToCartWrapper: {
+    flex: 1,
+  },
+
+  addToCartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: 40,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+  },
+
+  addToCartText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+
+  goToCartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "#E11D48",
+    backgroundColor: "#FEF2F2",
+    paddingHorizontal: 16,
+    flex: 1,
+  },
+
+  goToCartText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#E11D48",
+  },
 });
